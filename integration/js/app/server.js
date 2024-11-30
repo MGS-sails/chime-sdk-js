@@ -12,7 +12,7 @@ const { v4: uuidv4 } = require('uuid');
 const meetingTable = {};
 
 // Use local host for application server
-const host = '127.0.0.1:8080';
+const host = '127.0.0.1:8081';
 
 // Load the contents of the web application to be used as the index page
 const htmlPage = fs.readFileSync(`dist/${process.env.npm_config_app || 'video_test'}.html`);

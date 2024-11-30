@@ -24,18 +24,18 @@
   <div class="text-muted" style="position:fixed;right:3px;bottom:3px" id="sdk-version"></div>
   <div class="container">
     <form id="form-authenticate">
-      <h1 class="h3 mb-3 fw-normal">Join a meeting</h1>
+      <h1 class="h3 mb-3 fw-normal">Join This Classroom </h1>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputMeeting" class="form-control" placeholder="Meeting Title or ID" required autofocus>
+        <input type="name" id="inputMeeting" class="form-control" placeholder="Meeting Title or ID"  autofocus>
         <label for="inputMeeting" style="text-align: left;">Meeting Title or ID</label>
       </div>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputName" class="form-control" placeholder="Your Name" required>
+        <input type="name" id="inputName" class="form-control" placeholder="Your Name" >
         <label for="inputName" style="text-align: left;">Your Name</label>
       </div>
       <div class="form-floating row mt-3" title="Used only for meeting creation. Ignored if meeting already exists">
         <select id="inputRegion" class="form-select" style="width:100%">
-          <option value="us-east-1" selected>United States (N. Virginia)</option>
+          <!-- <option value="us-east-1">United States (N. Virginia)</option>
           <option value="ap-northeast-1">Japan (Tokyo)</option>
           <option value="ap-southeast-1">Singapore</option>
           <option value="af-south-1">South Africa (Cape Town)</option>
@@ -45,37 +45,37 @@
           <option value="ap-southeast-2">Australia (Sydney)</option>
           <option value="ca-central-1">Canada</option>
           <option value="eu-central-1">Germany (Frankfurt)</option>
-          <option value="eu-north-1">Sweden (Stockholm)</option>
-          <option value="eu-west-1">Ireland</option>
-          <option value="eu-west-2">United Kingdom (London)</option>
+          <option value="eu-north-1">Sweden (Stockholm)</option> -->
+          <option value="eu-west-1" selected>Ireland</option>
+          <!-- <option value="eu-west-2">United Kingdom (London)</option>
           <option value="eu-west-3">France (Paris)</option>
           <option value="sa-east-1">Brazil (São Paulo)</option>
           <option value="us-east-2">United States (Ohio)</option>
           <option value="us-west-1">United States (N. California)</option>
           <option value="us-west-2">United States (Oregon)</option>
           <option value="us-gov-west-1">GovCloud (US-West)</option>
-          <option value="us-gov-east-1">GovCloud (US-East)</option>
+          <option value="us-gov-east-1">GovCloud (US-East)</option> -->
         </select>
         <label for="inputRegion" style="text-align: left;"> Media Region</label>
       </div>
-      <div class="row mt-3">
+      <!-- <div class="row mt-3">
         <button type="button" class="btn btn-outline-secondary h-50 d-sm-block" data-bs-toggle="modal" id="additional-options-button"
                 data-bs-target="#additional-options-modal">
           Additional Options
         </button>
-      </div>
+      </div> -->
       <div class="row mt-3">
         <div class="btn-group p-0" role="group">
           <button id="authenticate" class="btn btn-lg btn-secondary w-100" type="submit">Continue</button>
-          <button id="quick-join" class="btn btn-lg btn-success" title="Skip Device Selection"><%= require('../../node_modules/open-iconic/svg/bolt.svg') %></button>
+          <!-- <button id="quick-join" class="btn btn-lg btn-success" title="Skip Device Selection"><%= require('../../node_modules/open-iconic/svg/bolt.svg') %></button> -->
         </div>
       </div>
-      <div class="row mt-3">
+      <!-- <div class="row mt-3">
         <p>Anyone with access to the meeting link can join.</p>
-      </div>
-      <div class="row mt-3">
+      </div> -->
+      <!-- <div class="row mt-3">
         <a id="to-sip-flow" href="#">Joining via SIP? Click here.</a>
-      </div>
+      </div> -->
       <div class="row mt-3">
         <div id="progress-authenticate" class="w-100 progress progress-hidden">
           <div class="w-100 progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -136,7 +136,7 @@
             <label for="contentCapability"  style="text-align: left;">Content capability:</label>
           </div>
           <div class="form-check" style="text-align: left;">
-            <input type="checkbox" id="join-muted" class="form-check-input"></input>
+            <input type="checkbox" checked id="join-muted" class="form-check-input"></input>
             <label for="join-muted-setting" class="form-check-label">Join Muted</label>
           </div>
         <div class="form-check" style="text-align: left;">

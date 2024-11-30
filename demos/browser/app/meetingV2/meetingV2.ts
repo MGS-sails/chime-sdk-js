@@ -3,6 +3,7 @@
 
 import './styleV2.scss';
 
+
 import {
   AllHighestVideoBandwidthPolicy,
   ApplicationMetadata,
@@ -110,7 +111,7 @@ let SHOULD_EARLY_CONNECT = (() => {
 })();
 
 let SHOULD_DIE_ON_FATALS = (() => {
-  const isLocal = document.location.host === '127.0.0.1:8080' || document.location.host === 'localhost:8080';
+  const isLocal = document.location.host === '127.0.0.1:8081' || document.location.host === 'localhost:8080';
   const fatalYes = document.location.search.includes('fatal=1');
   const fatalNo = document.location.search.includes('fatal=0');
   return fatalYes || (isLocal && !fatalNo);
@@ -357,7 +358,7 @@ export class DemoMeetingApp
 
   supportsVoiceFocus = false;
   enableVoiceFocus = false;
-  joinMuted = false;
+  joinMuted = true;
   voiceFocusIsActive = false;
 
   supportsBackgroundBlur = false;
@@ -520,8 +521,13 @@ export class DemoMeetingApp
 
   initParameters(): void {
     const meeting = new URL(window.location.href).searchParams.get('m');
+    const meetingTitle = new URL(window.location.href).searchParams.get('title');
+    const attendeeName = new URL(window.location.href).searchParams.get('name');
+
+    
+    console.log('eww', meeting, meetingTitle, attendeeName)
     if (meeting) {
-      (document.getElementById('inputMeeting') as HTMLInputElement).value = meeting;
+      (document.getElementById('inputMeeting') as HTMLInputElement).value = meetingTitle;
       (document.getElementById('inputName') as HTMLInputElement).focus();
     } else {
       (document.getElementById('inputMeeting') as HTMLInputElement).focus();
@@ -713,10 +719,10 @@ export class DemoMeetingApp
       }
     });
 
-    document.getElementById('quick-join').addEventListener('click', e => {
-      e.preventDefault();
-      this.redirectFromAuthentication(true);
-    });
+    // document.getElementById('quick-join').addEventListener('click', e => {
+    //   e.preventDefault();
+    //   this.redirectFromAuthentication(true);
+    // });
 
     document.getElementById('join-info-override-join-button').addEventListener('click', e => {
       e.preventDefault();
@@ -771,10 +777,10 @@ export class DemoMeetingApp
       }
     });
 
-    document.getElementById('to-sip-flow').addEventListener('click', e => {
-      e.preventDefault();
-      this.switchToFlow('flow-sip-authenticate');
-    });
+    // document.getElementById('to-sip-flow').addEventListener('click', e => {
+    //   e.preventDefault();
+    //   this.switchToFlow('flow-sip-authenticate');
+    // });
 
     document.getElementById('form-sip-authenticate').addEventListener('submit', e => {
       e.preventDefault();
@@ -1488,22 +1494,23 @@ export class DemoMeetingApp
     AsyncScheduler.nextTick(
         async (): Promise<void> => {
           try {
-            const query = new URLSearchParams(document.location.search);
-            const region = query.get('region');
-            const nearestMediaRegion = region ? region : await this.getNearestMediaRegion();
-            if (nearestMediaRegion === '' || nearestMediaRegion === null) {
-              throw new Error('Nearest Media Region cannot be null or empty');
-            }
-            const supportedMediaRegions: string[] = this.getSupportedMediaRegions();
-            if (supportedMediaRegions.indexOf(nearestMediaRegion) === -1) {
-              supportedMediaRegions.push(nearestMediaRegion);
-              const mediaRegionElement = document.getElementById('inputRegion') as HTMLSelectElement;
-              const newMediaRegionOption = document.createElement('option');
-              newMediaRegionOption.value = nearestMediaRegion;
-              newMediaRegionOption.text = nearestMediaRegion + ' (' + nearestMediaRegion + ')';
-              mediaRegionElement.add(newMediaRegionOption, null);
-            }
-            (document.getElementById('inputRegion') as HTMLInputElement).value = nearestMediaRegion;
+            // const query = new URLSearchParams(document.location.search);
+            // const region = query.get('region');
+            // const nearestMediaRegion = region ? region : await this.getNearestMediaRegion();
+            // if (nearestMediaRegion === '' || nearestMediaRegion === null) {
+            //   throw new Error('Nearest Media Region cannot be null or empty');
+            // }
+            // const supportedMediaRegions: string[] = this.getSupportedMediaRegions();
+            // if (supportedMediaRegions.indexOf(nearestMediaRegion) === -1) {
+            //   supportedMediaRegions.push(nearestMediaRegion);
+            //   const mediaRegionElement = document.getElementById('inputRegion') as HTMLSelectElement;
+            //   const newMediaRegionOption = document.createElement('option');
+            //   newMediaRegionOption.value = nearestMediaRegion;
+            //   newMediaRegionOption.text = nearestMediaRegion + ' (' + nearestMediaRegion + ')';
+            //   // mediaRegionElement.add(newMediaRegionOption, null);
+            // }
+          (document.getElementById('inputRegion') as HTMLInputElement).value = "eu-west-1";
+            // (document.getElementById('inputRegion') as HTMLInputElement).value = nearestMediaRegion;
           } catch (error) {
             fatal(error);
             this.log('Default media region selected: ' + error.message);
@@ -1971,7 +1978,7 @@ export class DemoMeetingApp
   }
 
   private isLocalHost(): boolean {
-    return document.location.host === '127.0.0.1:8080' || document.location.host === 'localhost:8080';
+    return document.location.host === '127.0.0.1:8081' || document.location.host === 'localhost:8080';
   }
 
   async join(): Promise<void> {

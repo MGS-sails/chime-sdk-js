@@ -401,6 +401,8 @@ export class DemoMeetingApp {
     });
 
     document.getElementById('form-authenticate').addEventListener('submit', async e => {
+      console.log("joiing from app")
+
       e.preventDefault();
       if (!!(await this.startMeetingAndInitializeMeetingReadinessChecker())) {
         this.switchToFlow('flow-readinesstest');
@@ -625,22 +627,23 @@ export class DemoMeetingApp {
     new AsyncScheduler().start(
       async (): Promise<void> => {
         try {
-          const query = new URLSearchParams(document.location.search);
-          const region = query.get('region');
-          const nearestMediaRegion = region ? region : await this.getNearestMediaRegion();
-          if (nearestMediaRegion === '' || nearestMediaRegion === null) {
-            throw new Error('Nearest Media Region cannot be null or empty');
-          }
-          const supportedMediaRegions: string[] = this.getSupportedMediaRegions();
-          if (supportedMediaRegions.indexOf(nearestMediaRegion) === -1) {
-            supportedMediaRegions.push(nearestMediaRegion);
-            const mediaRegionElement = document.getElementById('inputRegion') as HTMLSelectElement;
-            const newMediaRegionOption = document.createElement('option');
-            newMediaRegionOption.value = nearestMediaRegion;
-            newMediaRegionOption.text = nearestMediaRegion + ' (' + nearestMediaRegion + ')';
-            mediaRegionElement.add(newMediaRegionOption, null);
-          }
-          (document.getElementById('inputRegion') as HTMLInputElement).value = nearestMediaRegion;
+          // const query = new URLSearchParams(document.location.search);
+          // const region = query.get('region');
+          // const nearestMediaRegion = region ? region : await this.getNearestMediaRegion();
+          // if (nearestMediaRegion === '' || nearestMediaRegion === null) {
+          //   throw new Error('Nearest Media Region cannot be null or empty');
+          // }
+          // const supportedMediaRegions: string[] = this.getSupportedMediaRegions();
+          // if (supportedMediaRegions.indexOf(nearestMediaRegion) === -1) {
+          //   supportedMediaRegions.push(nearestMediaRegion);
+          //   const mediaRegionElement = document.getElementById('inputRegion') as HTMLSelectElement;
+          //   const newMediaRegionOption = document.createElement('option');
+          //   newMediaRegionOption.value = nearestMediaRegion;
+          //   newMediaRegionOption.text = nearestMediaRegion + ' (' + nearestMediaRegion + ')';
+          //   // mediaRegionElement.add(newMediaRegionOption, null);
+          // }
+          (document.getElementById('inputRegion') as HTMLInputElement).value = "eu-west-1";
+          // (document.getElementById('inputRegion') as HTMLInputElement).value = nearestMediaRegion;
         } catch (error) {
           this.log('Default media region selected: ' + error.message);
         }

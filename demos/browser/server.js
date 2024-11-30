@@ -48,9 +48,15 @@ if (ivsEndpoint) {
   console.info(`IVS destination for live connector not set. Live Connector will not be available.`)
 }
 
-function serve(host = '127.0.0.1:8080') {
+function serve(host = '127.0.0.1:8081') {
   // Start an HTTP server to serve the index page and handle meeting actions
   http.createServer({}, async (request, response) => {
+    const requestUrl = url.parse(request.url, true); 
+    const meetingTitle = requestUrl.query.title; // Extract the 'title' parameter
+    const attendeeName = requestUrl.query.name;
+    // Proceed with meeting logic if parameters are valid
+    console.log('Meeting Title:', meetingTitle);
+    console.log('Attendee Name:', attendeeName);
     log(`${request.method} ${request.url} BEGIN`);
     try {
       // Enable HTTP compression
@@ -58,6 +64,7 @@ function serve(host = '127.0.0.1:8080') {
       const requestUrl = url.parse(request.url, true);
       if (request.method === 'GET' && requestUrl.pathname === '/') {
         // Return the contents of the index page
+        console.log("i serve browser")
         respond(response, 200, 'text/html', indexPage);
       } else if (process.env.DEBUG) {
         // For internal debugging - ignore this
@@ -65,9 +72,11 @@ function serve(host = '127.0.0.1:8080') {
         const debugResponse = await debug.debug(request);
         respond(response, debugResponse.status, 'application/json', JSON.stringify(debugResponse.response, null, 2));
       } else if (request.method === 'POST' && requestUrl.pathname === '/join') {
-        if (!requestUrl.query.title || !requestUrl.query.name) {
-          respond(response, 400, 'application/json', JSON.stringify({ error: 'Need parameters: title and name' }));
-        }
+      console.log("joiing from browser")
+
+        // if (!requestUrl.query.title || !requestUrl.query.name) {
+        //   respond(response, 400, 'application/json', JSON.stringify({ error: 'Need parameters: title and name' }));
+        // }
         const meetingIdFormat = /^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/
         let meeting = meetingTable[requestUrl.query.title];
 
@@ -157,6 +166,7 @@ function serve(host = '127.0.0.1:8080') {
             console.info('Creating new meeting: ' + JSON.stringify(request));
             meeting = await chimeSDKMeetings.createMeeting(request);
             console.info('Created new meeting: ' + JSON.stringify(meeting));
+            console.info('Created new meeting with id: ' + JSON.stringify(meeting).MeetingId);
 
             // Extend meeting with primary external meeting ID if it exists
             if (primaryMeeting !== undefined) {
