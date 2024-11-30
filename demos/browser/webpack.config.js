@@ -71,22 +71,25 @@ module.exports = env => {
         // which app finally made it through the gauntlet.
         process.env.npm_config_app = app;
         const { serve } = require('./server.js');
-        serve('127.0.0.1:8081');
+        serve('127.0.0.1:8080');
       },
       static: {
         publicPath: '/',
       },
       port: 8080,
       proxy: {
-        '/join': 'http://127.0.0.1:8081',
-        '/deleteAttendee': 'http://127.0.0.1:8081',
-        '/end': 'http://127.0.0.1:8081',
-        '/fetch_credentials': 'http://127.0.0.1:8081',
-        '/audio_file': 'http://127.0.0.1:8081',
-        '/stereo_audio_file': 'http://127.0.0.1:8081',
-        '/update_attendee_capabilities': 'http://127.0.0.1:8081',
-        '/batch_update_attendee_capabilities_except': 'http://127.0.0.1:8081',
-        '/get_attendee': 'http://127.0.0.1:8081',
+        '/join': 'http://127.0.0.1:8080',
+        '/deleteAttendee': 'http://127.0.0.1:8080',
+        '/end': 'http://127.0.0.1:8080',
+        '/fetch_credentials': 'http://127.0.0.1:8080',
+        '/audio_file': 'http://127.0.0.1:8080',
+        '/stereo_audio_file': 'http://127.0.0.1:8080',
+        '/update_attendee_capabilities': 'http://127.0.0.1:8080',
+        '/batch_update_attendee_capabilities_except': 'http://127.0.0.1:8080',
+        '/get_attendee': 'http://127.0.0.1:8080',
+
+        '/creating-lms-meeting': 'http://127.0.0.1:8080',
+        '/join-from-lms': 'http://127.0.0.1:8080',
       }
     },
     plugins: [
@@ -147,7 +150,7 @@ module.exports = env => {
         },
       ],
     },
-    mode: 'production',
+    mode: 'development',
     performance: {
       hints: false,
     },
