@@ -493,6 +493,8 @@ export class DemoMeetingApp
     } else {
       this.switchToFlow('flow-authenticate');
     }
+
+    this.fetchMeetingDetailsAndStart();
   }
 
   /**
@@ -538,6 +540,95 @@ export class DemoMeetingApp
       });
     }
   }
+
+  /* ********* lms test */
+  async fetchMeetingDetailsAndStart(): Promise<void> {
+    console.log('well well well...')
+    try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const meeting_id = urlParams.get('meeting');
+    const attendee = urlParams.get('attendee');
+
+    const response = await fetch(`/lms/join-meeting?meeting=${meeting_id}&attendee=${attendee}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      // body: JSON.stringify({
+      //   meeting: 'John Doe',
+      //   attendee: 'john@example.com'
+      // })
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+    console.log('Success:', data);
+
+
+    this.meeting = 'Test Meeting';
+    this.name = 'John Doe';
+    this.joinInfoOverride = data
+    await this.authenticate();
+
+    if (this.isViewOnly) {
+      this.updateUXForViewOnlyMode();
+      await this.skipDeviceSelection(false);
+      return;
+    }
+    await this.initVoiceFocus();
+    await this.initBackgroundBlur();
+    await this.initBackgroundReplacement();
+    await this.initAttendeeCapabilityFeature();
+    await this.resolveSupportsVideoFX();
+    await this.populateAllDeviceLists();
+    await this.populateVideoFilterInputList(false);
+    await this.populateVideoFilterInputList(true);
+    if (this.enableSimulcast) {
+      const videoInputQuality = document.getElementById(
+          'video-input-quality'
+      ) as HTMLSelectElement;
+      if (this.appliedVideoMaxResolution === VideoQualitySettings.VideoResolutionFHD) {
+        videoInputQuality.value = '1080p';
+        this.maxBitrateKbps = 2500;
+        this.audioVideo.chooseVideoInputQuality(1920, 1080, 15);
+      } else {
+        videoInputQuality.value = '720p';
+        this.maxBitrateKbps = 1500;
+        this.audioVideo.chooseVideoInputQuality(1280, 720, 15);
+      }
+      videoInputQuality.disabled = true;
+    } else if (this.appliedVideoMaxResolution === VideoQualitySettings.VideoResolutionFHD) {
+      const videoInputQuality = document.getElementById(
+          'video-input-quality'
+      ) as HTMLSelectElement;
+      videoInputQuality.value = '1080p';
+      this.audioVideo.chooseVideoInputQuality(1920, 1080, 15);
+      this.maxBitrateKbps = 2500;
+    }
+    this.audioVideo.setVideoMaxBandwidthKbps(this.maxBitrateKbps);
+
+    // `this.primaryExternalMeetingId` may by set by the join request. Not relevant with overriden info.
+    const buttonPromoteToPrimary = document.getElementById('button-promote-to-primary');
+    if (!this.primaryExternalMeetingId || this.joinInfoOverride !== undefined) {
+      buttonPromoteToPrimary.style.display = 'none';
+    } else {
+      this.setButtonVisibility('button-record-cloud', false);
+      this.updateUXForReplicaMeetingPromotionState('demoted');
+    }
+
+    await this.skipDeviceSelection();
+      this.displayButtonStates();
+    
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+  /**************
+  */
 
   async initVoiceFocus(): Promise<void> {
     const logger = new ConsoleLogger('SDK', LogLevel.DEBUG);

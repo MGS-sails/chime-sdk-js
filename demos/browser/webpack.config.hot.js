@@ -48,6 +48,9 @@ module.exports = env => {
         '/update_attendee_capabilities': 'http://127.0.0.1:8081',
         '/batch_update_attendee_capabilities_except': 'http://127.0.0.1:8081',
         '/get_attendee': 'http://127.0.0.1:8081',
+
+        '/lms/creating-meeting': 'http://127.0.0.1:8080',
+        '/lms/join-meeting': 'http://127.0.0.1:8080'
       }
     },
     plugins: [

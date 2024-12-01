@@ -11,6 +11,8 @@ const http = require('http');
 const url = require('url');
 const { v4: uuidv4 } = require('uuid');
 
+const lmsApi = require('../../lms/api')
+
 // Store created meetings in a map so attendees can join by meeting title.
 const meetingTable = {};
 
@@ -58,6 +60,7 @@ function serve(host = '127.0.0.1:8080') {
       const requestUrl = url.parse(request.url, true);
       if (request.method === 'GET' && requestUrl.pathname === '/') {
         // Return the contents of the index page
+        console.log('index page: '+indexPage);
         respond(response, 200, 'text/html', indexPage);
       } else if (process.env.DEBUG) {
         // For internal debugging - ignore this
@@ -206,7 +209,94 @@ function serve(host = '127.0.0.1:8080') {
           joinResponse.JoinInfo.PrimaryExternalMeetingId = meeting.Meeting.PrimaryExternalMeetingId;
         }
         respond(response, 201, 'application/json', JSON.stringify(joinResponse, null, 2));
-      } else if (request.method === 'POST' && requestUrl.pathname === '/end') {
+
+      }
+
+      //** LMS route ***
+      // creating meeting
+      else if (request.method === 'POST' && requestUrl.pathname === '/lms/creating-meeting') {
+        // verifyToken(req, res, (user) => {
+        //   // If the token is valid, proceed with the endpoint logic
+        //   res.writeHead(200, { 'Content-Type': 'application/json' });
+        //   res.end(JSON.stringify({ message: 'Secure data accessed!', user }));
+        // });
+
+        if (!requestUrl.query.title || !requestUrl.query.host || !requestUrl.query.attendees) {
+          respond(response, 400, 'application/json', JSON.stringify({ error: 'Invalid params' }));
+        }
+
+        let meeting_title = requestUrl.query.title
+        let meeting_host = requestUrl.query.host
+        let meeting_attendees = requestUrl.query.attendees
+
+        
+        // TODO: check if host is lecturer
+
+        const meeting = await lmsApi.createMeeting(chimeSDKMeetings, meeting_title)
+        if(!meeting)
+          respond(response, 400, 'application/json', JSON.stringify({ error: 'Could not create meeting' }))
+
+        // TODO: store or update attendees in database by a unique key
+
+        respond(response, 201, 'application/json', JSON.stringify({meetingId: meeting.Meeting.MeetingId}, null, 2));
+
+        // respond(response, 201, 'application/json', JSON.stringify({meeting,}, null, 2));
+      } 
+
+      // join meeting from lms
+      else if (request.method === 'POST' && requestUrl.pathname === '/lms/join-meeting') {
+        if (!requestUrl.query.meeting || !requestUrl.query.attendee) {
+          respond(response, 400, 'application/json', JSON.stringify({ error: 'Invalid params' }));
+        }
+        console.log( 'Join lms endpoint console')
+
+        const meeting_id = requestUrl.query.meeting
+        const attendee = requestUrl.query.attendee
+
+        console.log('MeetingId: ', meeting_id)
+
+        const existing_meeting = await lmsApi.getMeeting(chimeSDKMeetings, meeting_id)
+        if(!existing_meeting) {
+          respond(response, 201, 'application/json', JSON.stringify({message: 'Meeting does not exists'}))
+          return
+        }
+
+        // const verifyResponse = lmsApi.verifyUser()
+        
+        // if(!verifyResponse) {
+        //   res.writeHead(302, { Location: 'https://tertiary-lms.test/virtual-classroom' });
+        //   res.end();
+        // }
+
+        let attendeeResponse = await lmsApi.addAttendeeToMeeting(chimeSDKMeetings, existing_meeting.Meeting.MeetingId, attendee)
+        console.log('Meeting host: ', attendeeResponse)
+
+        let joinResponse = {
+          JoinInfo: {
+            Meeting: existing_meeting,
+            Attendee: attendeeResponse,
+          },
+        }
+
+        respond(response, 201, 'application/json', JSON.stringify(joinResponse, null, 2));
+
+
+        // const queryString = new URLSearchParams(joinResponse).toString();
+        // // Redirect to the internal URL
+        // res.writeHead(302, { Location: '/' });
+        // res.end();
+
+        // for debugging purpose
+        // respond(response, 201, 'application/json', JSON.stringify({
+        //   message: 'Meeting found',
+        //   meeting: existing_meeting,
+        //   attendee: attendeeResponse
+        // }))
+
+      }
+      //** LMS route end ***
+
+      else if (request.method === 'POST' && requestUrl.pathname === '/end') {
         // End the meeting. All attendee connections will hang up.
         await chimeSDKMeetings.deleteMeeting({
           MeetingId: meetingTable[requestUrl.query.title].Meeting.MeetingId,
