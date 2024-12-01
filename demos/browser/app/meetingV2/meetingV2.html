@@ -21,20 +21,28 @@
 
 <!-- Initial meeting authentication screen with meeting and name inputs -->
 <div id="flow-authenticate" class="flow text-center p-2">
-  <div class="text-muted" style="position:fixed;right:3px;bottom:3px" id="sdk-version"></div>
+  <!-- <div class="text-muted" style="position:fixed;right:3px;bottom:3px" id="sdk-version"></div> -->
+   
+  <div class="text-muted" style="position:fixed;right:3px;bottom:3px">
+      <!-- <img crossorigin="anonymous" src="https://www.schooltry.com/img/logo.svg" height="30" /> -->
+    Powered By SchoolTry</div>
   <div class="container">
     <form id="form-authenticate">
       <h1 class="h3 mb-3 fw-normal">Join This Classroom </h1>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputMeeting" class="form-control" placeholder="Meeting Title or ID"  autofocus>
-        <label for="inputMeeting" style="text-align: left;">Meeting Title or ID</label>
+        <input type="name" id="inputMeeting" readonly hidden aria-hidden="true" class="form-control" placeholder="Meeting Title or ID"  autofocus>
+        <label for="inputMeeting" aria-readonly="true" readonly hidden aria-hidden="true" style="text-align: left;">Meeting Title or ID</label>
       </div>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputName" class="form-control" placeholder="Your Name" >
-        <label for="inputName" style="text-align: left;">Your Name</label>
+        <input type="name" id="inputName" readonly hidden aria-hidden="true" class="form-control" placeholder="Your Name" >
+        <label for="inputName" aria-readonly="true" hidden aria-hidden="true" readonly style="text-align: left;">Your Name</label>
+      </div>
+      <div class="form-floating row mt-3">
+        <input type="name" id="inputMeetingCode" class="form-control" placeholder="Input Your Meeting Code" >
+        <label for="inputMeetingCode" style="text-align: left;">Meeting Code</label>
       </div>
       <div class="form-floating row mt-3" title="Used only for meeting creation. Ignored if meeting already exists">
-        <select id="inputRegion" class="form-select" style="width:100%">
+        <select id="inputRegion" readonly hidden aria-hidden="true" class="form-select" style="width:100%">
           <!-- <option value="us-east-1">United States (N. Virginia)</option>
           <option value="ap-northeast-1">Japan (Tokyo)</option>
           <option value="ap-southeast-1">Singapore</option>
@@ -56,7 +64,7 @@
           <option value="us-gov-west-1">GovCloud (US-West)</option>
           <option value="us-gov-east-1">GovCloud (US-East)</option> -->
         </select>
-        <label for="inputRegion" style="text-align: left;"> Media Region</label>
+        <label for="inputRegion" style="text-align: left;" readonly hidden aria-hidden="true"> Media Region</label>
       </div>
       <!-- <div class="row mt-3">
         <button type="button" class="btn btn-outline-secondary h-50 d-sm-block" data-bs-toggle="modal" id="additional-options-button"
@@ -70,9 +78,13 @@
           <!-- <button id="quick-join" class="btn btn-lg btn-success" title="Skip Device Selection"><%= require('../../node_modules/open-iconic/svg/bolt.svg') %></button> -->
         </div>
       </div>
-      <!-- <div class="row mt-3">
-        <p>Anyone with access to the meeting link can join.</p>
-      </div> -->
+      <div class="row mt-3">
+        <div>
+          <!-- <img crossorigin="anonymous" src="https://www.schooltry.com/img/logo.svg" height="30" />  -->
+          <p>Powered By SchoolTry</p>
+        </div>
+        <!-- <p>Anyone with access to the meeting link can join.</p> -->
+      </div>
       <!-- <div class="row mt-3">
         <a id="to-sip-flow" href="#">Joining via SIP? Click here.</a>
       </div> -->
@@ -705,7 +717,7 @@
           <option value="SSN">SSN</option>
         </select>
       </div>
-      <button id="button-start-transcription" type="button" class="btn btn-success mx-1 mx-xl-2 my-2" title="Start"
+      <button id="button-start-transcription" type="button" class="btn btn-primary mx-1 mx-xl-2 my-2" title="Start"
               data-bs-toggle="button" aria-pressed="false" autocomplete="off">
         <%= require('../../node_modules/open-iconic/svg/caret-right.svg') %>
       </button>
@@ -729,8 +741,11 @@
         </div>
       </div>
       <div class="col d-none d-lg-block">
-        <div id="video-uplink-bandwidth" class="text-muted text-end"></div>
-        <div id="video-downlink-bandwidth" class="text-muted text-end"></div>
+        <!-- <div id="video-uplink-bandwidth" class="text-muted text-end"></div>
+        <div id="video-downlink-bandwidth" class="text-muted text-end"></div> -->
+        <div  class="text-muted text-end">
+            <!-- <img crossorigin="anonymous" src="school-try-logo.png" height="30" /> -->
+          Powered By SchoolTry</div>
       </div>
     </div>
   </div>
@@ -762,7 +777,7 @@
           <button id="button-camera" type="button" class="btn btn-success" title="Toggle camera">
             <%= require('../../node_modules/open-iconic/svg/video.svg') %>
           </button>
-          <button id="button-camera-drop" type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
+          <button id="button-camera-drop" type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
                   aria-expanded="false" title="Select camera"><span class="visually-hidden">Toggle Dropdown</span></button>
           <div id="dropdown-menu-camera" class="dropdown-menu dropdown-menu-end">
             <a class="dropdown-item" href="#">Default camera</a>

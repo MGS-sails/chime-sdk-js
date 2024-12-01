@@ -65,7 +65,7 @@ import {
   TranscriptionStatusType,
   TranscriptItemType,
   TranscriptResult,
-  Versioning,
+  // Versioning,
   VideoCodecCapability,
   VideoDownlinkObserver,
   VideoFrameProcessor,
@@ -476,8 +476,8 @@ export class DemoMeetingApp
       return;
     }
 
-    (document.getElementById('sdk-version') as HTMLSpanElement).innerText =
-      'amazon-chime-sdk-js@' + Versioning.sdkVersion;
+    // (document.getElementById('sdk-version') as HTMLSpanElement).innerText =
+    //   'amazon-chime-sdk-js@' + Versioning.sdkVersion;
     this.initEventListeners();
     this.initParameters();
     this.setMediaRegion();
@@ -1728,10 +1728,10 @@ export class DemoMeetingApp
   metricsDidReceive(clientMetricReport: ClientMetricReport): void {
     this.logAudioStreamPPS(clientMetricReport);
     this.logRedRecoveryPercent(clientMetricReport);
-    const metricReport = clientMetricReport.getObservableMetrics();
+    // const metricReport = clientMetricReport.getObservableMetrics();
     this.videoMetricReport = clientMetricReport.getObservableVideoMetrics();
-    this.displayEstimatedUplinkBandwidth(metricReport.availableOutgoingBitrate);
-    this.displayEstimatedDownlinkBandwidth(metricReport.availableIncomingBitrate);
+    // this.displayEstimatedUplinkBandwidth(metricReport.availableOutgoingBitrate);
+    // this.displayEstimatedDownlinkBandwidth(metricReport.availableIncomingBitrate);
 
     this.isButtonOn('button-video-stats') && this.videoTileCollection.showVideoWebRTCStats(this.videoMetricReport);
     this.videoTileCollection.collectVideoWebRTCStats(this.videoMetricReport);
