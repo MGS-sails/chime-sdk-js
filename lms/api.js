@@ -58,9 +58,6 @@ exports.addAttendeeToMeeting = async function addAttendeeToMeeting(chimeMeetingI
       }
     }
     try {
-      console.log('Attendee Options', attendeeOption)
-      // const command = new CreateAttendeeCommand(attendeeOption);
-      // return await chimeMeetingInstance.send(command)
         return await chimeMeetingInstance.createAttendee(attendeeOption)
     } catch (error) {
         console.log(error)
@@ -170,10 +167,6 @@ exports.verifyUser = async function verifyUser(username) {
     return false
   }
     
-}
-
-exports.updateNewMeetingId = async function updateNewMeetingId(virtualClassroomId) {
-
 }
 
 function sendHttpRequest(url, method, data = null) {
