@@ -10,6 +10,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const { v4: uuidv4 } = require('uuid');
+const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 
 // Store created meetings in a map so attendees can join by meeting title.
 const meetingTable = {};
@@ -51,11 +52,19 @@ if (ivsEndpoint) {
 function serve(host = '127.0.0.1:8080') {
   // Start an HTTP server to serve the index page and handle meeting actions
   http.createServer({}, async (request, response) => {
-    log(`${request.method} ${request.url} BEGIN`);
+    // log(`${request.method} ${request.url} BEGIN`);
     try {
+      // Initialise Dynamo DB:
+      const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+      const ddb = new DynamoDB({
+        region: 'us-east-1',
+      });
+
+
       // Enable HTTP compression
       compression({})(request, response, () => {});
       const requestUrl = url.parse(request.url, true);
+
       if (request.method === 'GET' && requestUrl.pathname === '/') {
         // Return the contents of the index page
         respond(response, 200, 'text/html', indexPage);
@@ -64,10 +73,274 @@ function serve(host = '127.0.0.1:8080') {
         const debug = require('./debug.js');
         const debugResponse = await debug.debug(request);
         respond(response, debugResponse.status, 'application/json', JSON.stringify(debugResponse.response, null, 2));
-      } else if (request.method === 'POST' && requestUrl.pathname === '/join') {
+      }
+      // else if (request.method === 'POST' && requestUrl.pathname === '/meetings') {
+      //   console.log('REQ URL ', request);
+      //   // if (!requestUrl.query.region) {
+      //   //   respond(response, 400, 'application/json', JSON.stringify({ error: 'Need region parameter set if meeting has not yet been created' }));
+      //   // }
+      //   const meetingIdFormat = /^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/
+      //   // let meeting = meetingTable[requestUrl.query.title];
+      //   let meeting = null;
+      //   try {
+      //     meeting = await chimeSDKMeetings.getMeeting({
+      //       MeetingId: requestUrl.query.title
+      //       // MeetingId: 'MGS_TEST'
+      //     });
+      //     // if (meetingIdFormat.test(requestUrl.query.title)) {
+      //     // if (meetingIdFormat.test("MGS_TEST")) {
+      //     //   meeting = await chimeSDKMeetings.getMeeting({
+      //     //     MeetingId: requestUrl.query.title
+      //     //   });
+      //     // }
+      //   } catch (error) {
+      //     console.info("Meeting ID doesn't exist as a conference ID: " + error);
+      //   }
+      //
+      //   if (!meeting) {
+      //     let request = {
+      //       ClientRequestToken: uuidv4(),
+      //       MediaRegion: 'us-east-1',
+      //       ExternalMeetingId: requestUrl.query.title.substring(0, 64),
+      //       // ExternalMeetingId: 'MGS_TEST',
+      //     };
+      //
+      //
+      //     request.MeetingFeatures = {};
+      //     request.MeetingFeatures.Audio = {
+      //       EchoReduction: 'AVAILABLE',
+      //     };
+      //     request.MeetingFeatures.Video = {
+      //       // MaxResolution: requestUrl.query.v_rs,
+      //       MaxResolution: 'HD',
+      //     };
+      //     request.MeetingFeatures.Content = {
+      //       // MaxResolution: requestUrl.query.c_rs,
+      //       MaxResolution: 'FHD',
+      //     };
+      //     request.MeetingFeatures.Attendee = {
+      //       MaxCount: 250,
+      //     };
+      //
+      //     // if (
+      //     //   requestUrl.query.ns_es === 'true' ||
+      //     //   requestUrl.query.v_rs === 'FHD' ||
+      //     //   requestUrl.query.v_rs === 'None' ||
+      //     //   requestUrl.query.c_rs === 'UHD' ||
+      //     //   requestUrl.query.c_rs === 'None' ||
+      //     //   requestUrl.query.a_cnt > 1 && requestUrl.query.a_cnt <= 250
+      //     // ) {
+      //     //   request.MeetingFeatures = {};
+      //     //   if (requestUrl.query.ns_es === 'true') {
+      //     //     request.MeetingFeatures.Audio = {
+      //     //       EchoReduction: 'AVAILABLE',
+      //     //     };
+      //     //   }
+      //     //   if (requestUrl.query.v_rs === 'FHD' || requestUrl.query.v_rs === 'None') {
+      //     //     request.MeetingFeatures.Video = {
+      //     //       MaxResolution: requestUrl.query.v_rs,
+      //     //     };
+      //     //   }
+      //     //   if (requestUrl.query.c_rs === 'UHD' || requestUrl.query.c_rs === 'None') {
+      //     //     request.MeetingFeatures.Content = {
+      //     //       MaxResolution: requestUrl.query.c_rs,
+      //     //     };
+      //     //   }
+      //     //   if (requestUrl.query.a_cnt > 1 && requestUrl.query.a_cnt <= 250) {
+      //     //     request.MeetingFeatures.Attendee = {
+      //     //       MaxCount: Number(requestUrl.query.a_cnt),
+      //     //     };
+      //     //   }
+      //     // }
+      //
+      //     console.info('Creating new meeting: ' + JSON.stringify(request));
+      //     meeting = await chimeSDKMeetings.createMeeting(request);
+      //     console.info('Created new meeting: ' + JSON.stringify(meeting));
+      //
+      //   }
+      //
+      //   meetingTable[requestUrl.query.title] = meeting;
+      //
+      //   await ddb.putItem({
+      //     TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+      //     Item: {
+      //       'Title': { S: requestUrl.query.title },
+      //       // 'Title': { S: 'MGS_TEST' },
+      //       'Data': { S: JSON.stringify(meeting) },
+      //       'Attendees': { L: [
+      //         {
+      //           M: {
+      //             'Name': { S: 'MGS' },
+      //             'Username': { S: 'MGS_007' },
+      //             'MeetingPasscode': { S: '1234' }
+      //           },
+      //         },
+      //         {
+      //           M: {
+      //             'Name': { S: 'Yusuf' },
+      //             'Username': { S: 'YGS_007' },
+      //             'MeetingPasscode': { S: '4321' }
+      //           },
+      //         },
+      //         ] },
+      //       'TTL': {
+      //         N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}` // clean up meeting record one day from now
+      //       }
+      //     }
+      //   });
+      //
+      //
+      //   const meetings = Object.keys(meetingTable).map((title) => {
+      //     return meetingTable[title].Meeting;
+      //   });
+      //   respond(response, 200, 'application/json', JSON.stringify(meetings, null, 2));
+      // }
+
+      else if (request.method === 'POST' && requestUrl.pathname === '/meetings') {
+        // Parse POST body data
+        let body = '';
+
+        request.on('data', chunk => {
+          body += chunk.toString();
+        });
+
+        request.on('end', async () => {
+          try {
+            const postData = JSON.parse(body);
+            console.log('postData:', postData);
+            console.log('postData.attendees:', postData.attendees);
+            console.log('Is attendees array?', Array.isArray(postData.attendees));
+            // Now you can access the data from the request body
+            const meetingTitle = postData.title; // instead of requestUrl.query.title
+
+            let meeting = null;
+            try {
+              meeting = await chimeSDKMeetings.getMeeting({
+                MeetingId: meetingTitle
+              });
+            } catch (error) {
+              console.info("Meeting ID doesn't exist as a conference ID: " + error);
+            }
+
+            if (!meeting) {
+              let meetingRequest = {
+                ClientRequestToken: uuidv4(),
+                MediaRegion: 'us-east-1',
+                ExternalMeetingId: meetingTitle.substring(0, 64),
+                MeetingFeatures: {
+                  Audio: {
+                    EchoReduction: 'AVAILABLE',
+                  },
+                  Video: {
+                    MaxResolution: postData.videoResolution || 'HD',
+                  },
+                  Content: {
+                    MaxResolution: postData.contentResolution || 'FHD',
+                  },
+                  Attendee: {
+                    MaxCount: 250,
+                  }
+                }
+              };
+
+              console.info('Creating new meeting: ' + JSON.stringify(meetingRequest));
+              meeting = await chimeSDKMeetings.createMeeting(meetingRequest);
+              console.info('Created new meeting: ' + JSON.stringify(meeting));
+            }
+
+            meetingTable[meetingTitle] = meeting;
+
+            const attendeesForDDB = {
+              L: postData.attendees.map(attendee => ({
+                M: {
+                  'Name': { S: attendee.name || '' },
+                  'Role': { S: attendee.role },
+                  'ExternalUserId': { S: attendee.externalUserId },
+                  'MeetingPasscode': { S: attendee.meetingPasscode }
+                }
+              }))
+            };
+
+            console.log('DynamoDB Attendees structure:', JSON.stringify(attendeesForDDB, null, 2));
+
+            const putItemParams = {
+              TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+              Item: {
+                'Title': { S: meetingTitle },
+                'Data': { S: JSON.stringify(meeting) },
+                'Attendees': attendeesForDDB,
+                'TTL': {
+                  N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
+                }
+              }
+            };
+
+            console.log('Complete putItem params:', JSON.stringify(putItemParams, null, 2));
+
+            await ddb.putItem(putItemParams);
+
+            // Handle DynamoDB operations with the new data
+            // await ddb.putItem({
+            //   TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+            //   Item: {
+            //     'Title': { S: meetingTitle },
+            //     'Data': { S: JSON.stringify(meeting) },
+            //     'Attendees': { L: postData.attendees?.map(attendee => ({
+            //         M: {
+            //           'Name': { S: attendee.name },
+            //           'Role': { S: attendee.role },
+            //           'ExternalUserId': { S: attendee.externalUserId },
+            //           'MeetingPasscode': { S: attendee.meetingPasscode }
+            //         }
+            //       })) || [] },
+            //     'TTL': {
+            //       N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
+            //     }
+            //   }
+            // });
+
+            const meetings = Object.keys(meetingTable).map((title) => {
+              return meetingTable[title].Meeting;
+            });
+            respond(response, 200, 'application/json', JSON.stringify(meetings, null, 2));
+
+          } catch (error) {
+            console.error('Error processing request:', error);
+            respond(response, 400, 'application/json', JSON.stringify({ error: 'Invalid request body' }));
+          }
+        });
+      }
+      else if (request.method === 'POST' && requestUrl.pathname === '/join') {
         if (!requestUrl.query.title || !requestUrl.query.name) {
           respond(response, 400, 'application/json', JSON.stringify({ error: 'Need parameters: title and name' }));
         }
+        /* MGS ATTEMPT TO GET MEETING FROM DYNAMO DB
+
+
+         */
+        // try {
+        //   const result = await ddb.getItem({
+        //     TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+        //     Key: {
+        //       'Title': {
+        //         S: requestUrl.query.title
+        //       },
+        //     },
+        //   });
+        //   const particpant = result.Item.participants[0];
+        //   return particpant.meeting_passcode === requestUrl.query.passcode;
+        //   console.table(result)
+        // } catch (error) {
+        //   console.error("Unable to read item. Error JSON:", JSON.stringify(error, null, 2));
+        // }
+
+        // return result.Item ? JSON.parse(result.Item.Data.S) : null;
+
+
+
+
+
+
         const meetingIdFormat = /^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/
         let meeting = meetingTable[requestUrl.query.title];
 
@@ -443,13 +716,14 @@ function serve(host = '127.0.0.1:8080') {
     } catch (err) {
       respond(response, 400, 'application/json', JSON.stringify({ error: err.message }, null, 2));
     }
-    log(`${request.method} ${request.url} END`);
+    // log(`${request.method} ${request.url} END`);
   }).listen(host.split(':')[1], host.split(':')[0], () => {
     log(`server running at http://${host}/`);
   });
 }
 
-function log(message) {
+function log(message='123') {
+  // console.log('123');
   console.log(`${new Date().toISOString()} ${message}`);
 }
 
