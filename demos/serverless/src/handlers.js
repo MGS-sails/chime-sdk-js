@@ -239,71 +239,71 @@ exports.join = async (event, context) => {
     }
 
     // If still no meeting, create one
-    // if (!meeting) {
-    //   let request = {
-    //     // Use a UUID for the client request token to ensure that any request retries
-    //     // do not create multiple meetings.
-    //     ClientRequestToken: uuidv4(),
-    //
-    //     // Specify the media region (where the meeting is hosted).
-    //     // In this case, we use the region selected by the user.
-    //     MediaRegion: query.region,
-    //
-    //     // Set up SQS notifications if being used
-    //     NotificationsConfiguration: USE_EVENT_BRIDGE === 'false' ? { SqsQueueArn: SQS_QUEUE_ARN } : {},
-    //
-    //     // Any meeting ID you wish to associate with the meeting.
-    //     // For simplicity here, we use the meeting title.
-    //     ExternalMeetingId: query.title.substring(0, 64),
-    //   };
-    //   if (primaryMeeting !== undefined) {
-    //     request.PrimaryMeetingId = primaryMeeting.Meeting.MeetingId;
-    //   }
-    //   if (query.ns_es === 'true' ||
-    //         query.v_rs === 'FHD' ||
-    //         query.v_rs === 'None' ||
-    //         query.c_rs === 'UHD' ||
-    //         query.c_rs === 'None' ||
-    //         query.a_cnt > 1 && query.a_cnt <= 250) {
-    //     request.MeetingFeatures = {};
-    //     if (query.ns_es === 'true') {
-    //       request.MeetingFeatures.Audio = {
-    //         EchoReduction: 'AVAILABLE'
-    //       }
-    //     }
-    //     if (query.v_rs === 'FHD' || query.v_rs === 'None') {
-    //       request.MeetingFeatures.Video = {
-    //         MaxResolution: query.v_rs
-    //       }
-    //     }
-    //     if (query.c_rs === 'UHD' || query.c_rs === 'None') {
-    //       request.MeetingFeatures.Content = {
-    //         MaxResolution: query.c_rs
-    //       }
-    //     }
-    //     if (query.a_cnt > 1 && query.a_cnt <= 250) {
-    //       request.MeetingFeatures.Attendee = {
-    //         MaxCount: Number(query.a_cnt)
-    //       }
-    //     }
-    //   }
-    //   try {
-    //     console.info('Creating new meeting: ' + JSON.stringify(request));
-    //     meeting = await chimeSDKMeetings.createMeeting(request);
-    //   } catch (error) {
-    //     console.error('Failed to create new meeting: ' + JSON.stringify(error));
-    //     let statusCode = 400;
-    //     if (error.code == "ServiceFailureException" || error.code == "ServiceUnavailableException"){
-    //       statusCode = 500;
-    //     }
-    //     return response(statusCode, 'application/json', JSON.stringify({ error: error.message }));
-    //   }
-    //
-    //   // Extend meeting with primary external meeting ID if it exists
-    //   if (primaryMeeting !== undefined) {
-    //     meeting.Meeting.PrimaryExternalMeetingId = primaryMeeting.Meeting.ExternalMeetingId;
-    //   }
-    // }
+    if (!meeting) {
+      let request = {
+        // Use a UUID for the client request token to ensure that any request retries
+        // do not create multiple meetings.
+        ClientRequestToken: uuidv4(),
+
+        // Specify the media region (where the meeting is hosted).
+        // In this case, we use the region selected by the user.
+        MediaRegion: query.region,
+
+        // Set up SQS notifications if being used
+        NotificationsConfiguration: USE_EVENT_BRIDGE === 'false' ? { SqsQueueArn: SQS_QUEUE_ARN } : {},
+
+        // Any meeting ID you wish to associate with the meeting.
+        // For simplicity here, we use the meeting title.
+        ExternalMeetingId: query.title.substring(0, 64),
+      };
+      if (primaryMeeting !== undefined) {
+        request.PrimaryMeetingId = primaryMeeting.Meeting.MeetingId;
+      }
+      if (query.ns_es === 'true' ||
+            query.v_rs === 'FHD' ||
+            query.v_rs === 'None' ||
+            query.c_rs === 'UHD' ||
+            query.c_rs === 'None' ||
+            query.a_cnt > 1 && query.a_cnt <= 250) {
+        request.MeetingFeatures = {};
+        if (query.ns_es === 'true') {
+          request.MeetingFeatures.Audio = {
+            EchoReduction: 'AVAILABLE'
+          }
+        }
+        if (query.v_rs === 'FHD' || query.v_rs === 'None') {
+          request.MeetingFeatures.Video = {
+            MaxResolution: query.v_rs
+          }
+        }
+        if (query.c_rs === 'UHD' || query.c_rs === 'None') {
+          request.MeetingFeatures.Content = {
+            MaxResolution: query.c_rs
+          }
+        }
+        if (query.a_cnt > 1 && query.a_cnt <= 250) {
+          request.MeetingFeatures.Attendee = {
+            MaxCount: Number(query.a_cnt)
+          }
+        }
+      }
+      try {
+        console.info('Creating new meeting: ' + JSON.stringify(request));
+        meeting = await chimeSDKMeetings.createMeeting(request);
+      } catch (error) {
+        console.error('Failed to create new meeting: ' + JSON.stringify(error));
+        let statusCode = 400;
+        if (error.code == "ServiceFailureException" || error.code == "ServiceUnavailableException"){
+          statusCode = 500;
+        }
+        return response(statusCode, 'application/json', JSON.stringify({ error: error.message }));
+      }
+
+      // Extend meeting with primary external meeting ID if it exists
+      if (primaryMeeting !== undefined) {
+        meeting.Meeting.PrimaryExternalMeetingId = primaryMeeting.Meeting.ExternalMeetingId;
+      }
+    }
 
     // Store the meeting in the table using the meeting title as the key.
     // COMMENTED OUT TO PREVENT POTENTIAL OVERWRITING OF ATTENDEES LIST
