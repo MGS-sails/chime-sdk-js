@@ -411,6 +411,14 @@ export class DemoMeetingApp {
         await this.speakerTest();
       }
     });
+
+    document.getElementById('form-failed-meeting').addEventListener('submit', async e => {
+      e.preventDefault();
+      // close the browser window
+      window.close();
+    });
+
+
   }
 
   async initializeDeviceController(): Promise<void> {

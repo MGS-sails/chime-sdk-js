@@ -24,17 +24,20 @@
   <div class="text-muted" style="position:fixed;right:3px;bottom:3px" id="sdk-version"></div>
   <div class="container">
     <form id="form-authenticate">
-      <h1 class="h3 mb-3 fw-normal">Join a meeting</h1>
+      <h1 class="h3 mb-3 fw-normal">Join your scheduled class</h1>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputMeeting" class="form-control" placeholder="Meeting Title or ID" required autofocus>
-        <label for="inputMeeting" style="text-align: left;">Meeting Title or ID</label>
+        <input type="name" id="inputMeeting" class="form-control" placeholder="Meeting Title or ID" required hidden readonly>
+<!--        <label for="inputMeeting" style="text-align: left;">Meeting Title or ID</label>-->
+
+        <input type="name" id="inputPasscode" class="form-control" placeholder="Meeting Passcode" required autofocus>
+        <label for="inputPasscode" style="text-align: left;">Enter your class passcode</label>
       </div>
       <div class="form-floating row mt-3">
-        <input type="name" id="inputName" class="form-control" placeholder="Your Name" required>
-        <label for="inputName" style="text-align: left;">Your Name</label>
+        <input type="name" id="inputName" class="form-control" placeholder="Your Name" required hidden readonly>
+<!--        <label for="inputName" style="text-align: left;">Your Name</label>-->
       </div>
       <div class="form-floating row mt-3" title="Used only for meeting creation. Ignored if meeting already exists">
-        <select id="inputRegion" class="form-select" style="width:100%">
+        <select id="inputRegion" class="form-select" style="width:100%" hidden readonly>
           <option value="us-east-1" selected>United States (N. Virginia)</option>
           <option value="ap-northeast-1">Japan (Tokyo)</option>
           <option value="ap-southeast-1">Singapore</option>
@@ -56,25 +59,25 @@
           <option value="us-gov-west-1">GovCloud (US-West)</option>
           <option value="us-gov-east-1">GovCloud (US-East)</option>
         </select>
-        <label for="inputRegion" style="text-align: left;"> Media Region</label>
+<!--        <label for="inputRegion" style="text-align: left;"> Media Region</label>-->
       </div>
       <div class="row mt-3">
-        <button type="button" class="btn btn-outline-secondary h-50 d-sm-block" data-bs-toggle="modal" id="additional-options-button"
-                data-bs-target="#additional-options-modal">
-          Additional Options
-        </button>
+<!--        <button type="button" class="btn btn-outline-secondary h-50 d-sm-block" data-bs-toggle="modal" id="additional-options-button"-->
+<!--                data-bs-target="#additional-options-modal">-->
+<!--          Additional Options-->
+<!--        </button>-->
       </div>
       <div class="row mt-3">
         <div class="btn-group p-0" role="group">
           <button id="authenticate" class="btn btn-lg btn-secondary w-100" type="submit">Continue</button>
-          <button id="quick-join" class="btn btn-lg btn-success" title="Skip Device Selection"><%= require('../../node_modules/open-iconic/svg/bolt.svg') %></button>
+          <button id="quick-join" class="btn btn-lg btn-success" title="Skip Device Selection" style="display: none"><%= require('../../node_modules/open-iconic/svg/bolt.svg') %></button>
         </div>
       </div>
       <div class="row mt-3">
-        <p>Anyone with access to the meeting link can join.</p>
+        <p>Welcome ! Click continue to attend your class</p>
       </div>
       <div class="row mt-3">
-        <a id="to-sip-flow" href="#">Joining via SIP? Click here.</a>
+        <a id="to-sip-flow" href="#" style="display: none">Joining via SIP? Click here.</a>
       </div>
       <div class="row mt-3">
         <div id="progress-authenticate" class="w-100 progress progress-hidden">
@@ -365,9 +368,8 @@
       <div class="card border-warning mb-3" style="max-width: 20rem;">
         <div id="failed-meeting" class="card-header"></div>
         <div class="card-body">
-          <h4 class="card-title">Unable to find meeting</h4>
-          <p class="card-text">There was an issue finding that meeting. The meeting may have already ended, or your
-            authorization may have expired.</p>
+          <h4 class="card-title">Failed to join meeting</h4>
+          <p class="card-text">There was an issue finding that meeting. The meeting may have already ended, or you have entered the wrong meeting passcode. Please ensure you are using the correct meeting passcode</p>
           <small id="failed-meeting-error" class="text-muted"></small>
         </div>
       </div>

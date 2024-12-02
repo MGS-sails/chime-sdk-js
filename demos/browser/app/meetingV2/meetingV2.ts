@@ -290,6 +290,7 @@ export class DemoMeetingApp
   showActiveSpeakerScores = false;
   meeting: string | null = null;
   name: string | null = null;
+  passcode: string | null = null;
   voiceConnectorId: string | null = null;
   sipURI: string | null = null;
   region: string | null = null;
@@ -2383,6 +2384,7 @@ export class DemoMeetingApp
       audioCapability?: string,
       videoCapability?: string,
       contentCapability?: string,
+      passcode?: string
     ): Promise<any> {
     let videoMaxResolutionStr = 'HD';
     let contentMaxResolutionStr = 'FHD';
@@ -2409,6 +2411,9 @@ export class DemoMeetingApp
     let uri = `${DemoMeetingApp.BASE_URL}join?title=${encodeURIComponent(
         meeting
     )}&name=${encodeURIComponent(name)}&region=${encodeURIComponent(region)}`
+    if (passcode) {
+      uri += `&passcode=${passcode}`;
+    }
     if (primaryExternalMeetingId) {
       uri += `&primaryExternalMeetingId=${primaryExternalMeetingId}`;
     }
@@ -3491,6 +3496,7 @@ export class DemoMeetingApp
       this.audioCapability,
       this.videoCapability,
       this.contentCapability,
+      this.passcode
     )).JoinInfo;
     this.region = this.joinInfo.Meeting.Meeting.MediaRegion;
     const configuration = new MeetingSessionConfiguration(this.joinInfo.Meeting, this.joinInfo.Attendee);
@@ -3872,7 +3878,12 @@ export class DemoMeetingApp
 
   private redirectFromAuthentication(quickjoin: boolean = false): void {
     this.meeting = (document.getElementById('inputMeeting') as HTMLInputElement).value;
-    this.name = (document.getElementById('inputName') as HTMLInputElement).value;
+    // this.name = (document.getElementById('inputName') as HTMLInputElement).value;
+    // get this.name from the query string if it exists
+    const url = new URL(window.location.href);
+    const name = url.searchParams.get('u');
+    this.name = name ? name : '';
+    this.passcode = (document.getElementById('inputPasscode') as HTMLInputElement).value;
     this.region = (document.getElementById('inputRegion') as HTMLInputElement).value;
     this.enableSimulcast = (document.getElementById('simulcast') as HTMLInputElement).checked;
     if (!this.enableSimulcast) {

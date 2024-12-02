@@ -261,7 +261,6 @@ function serve(host = '127.0.0.1:8080') {
               }))
             };
 
-            console.log('DynamoDB Attendees structure:', JSON.stringify(attendeesForDDB, null, 2));
 
             const putItemParams = {
               TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
@@ -279,26 +278,6 @@ function serve(host = '127.0.0.1:8080') {
 
             await ddb.putItem(putItemParams);
 
-            // Handle DynamoDB operations with the new data
-            // await ddb.putItem({
-            //   TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
-            //   Item: {
-            //     'Title': { S: meetingTitle },
-            //     'Data': { S: JSON.stringify(meeting) },
-            //     'Attendees': { L: postData.attendees?.map(attendee => ({
-            //         M: {
-            //           'Name': { S: attendee.name },
-            //           'Role': { S: attendee.role },
-            //           'ExternalUserId': { S: attendee.externalUserId },
-            //           'MeetingPasscode': { S: attendee.meetingPasscode }
-            //         }
-            //       })) || [] },
-            //     'TTL': {
-            //       N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
-            //     }
-            //   }
-            // });
-
             const meetings = Object.keys(meetingTable).map((title) => {
               return meetingTable[title].Meeting;
             });
@@ -311,28 +290,45 @@ function serve(host = '127.0.0.1:8080') {
         });
       }
       else if (request.method === 'POST' && requestUrl.pathname === '/join') {
-        if (!requestUrl.query.title || !requestUrl.query.name) {
+        // if (!requestUrl.query.title || !requestUrl.query.name) {
+        if (!requestUrl.query.title) {
           respond(response, 400, 'application/json', JSON.stringify({ error: 'Need parameters: title and name' }));
         }
         /* MGS ATTEMPT TO GET MEETING FROM DYNAMO DB
 
 
          */
-        // try {
-        //   const result = await ddb.getItem({
-        //     TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
-        //     Key: {
-        //       'Title': {
-        //         S: requestUrl.query.title
-        //       },
-        //     },
-        //   });
-        //   const particpant = result.Item.participants[0];
-        //   return particpant.meeting_passcode === requestUrl.query.passcode;
-        //   console.table(result)
-        // } catch (error) {
-        //   console.error("Unable to read item. Error JSON:", JSON.stringify(error, null, 2));
-        // }
+        try {
+          const result = await ddb.getItem({
+            TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+            Key: {
+              'Title': {
+                S: requestUrl.query.title
+              },
+            },
+          });
+          console.log('RESULT ', result);
+          // Get the attendees array
+          const attendees = result.Item.Attendees.L;
+
+// To get a more usable format, you can map through and clean up the data:
+          const cleanedAttendees = attendees.map(attendee => ({
+            role: attendee.M.Role.S,
+            externalUserId: attendee.M.ExternalUserId.S,
+            meetingPasscode: attendee.M.MeetingPasscode.S,
+            name: attendee.M.Name.S
+          }));
+
+          const participant = cleanedAttendees.find(attendee =>
+            attendee.externalUserId === requestUrl.query.name &&
+            attendee.meetingPasscode === requestUrl.query.passcode
+          );
+          if (!participant) {
+            respond(response, 400, 'application/json', JSON.stringify({ error: 'Attendee not found' }));
+          }
+        } catch (error) {
+          console.error("Unable to read item. Error JSON:", JSON.stringify(error, null, 2));
+        }
 
         // return result.Item ? JSON.parse(result.Item.Data.S) : null;
 
@@ -369,18 +365,23 @@ function serve(host = '127.0.0.1:8080') {
         }
 
         if (!meeting) {
-          if (!requestUrl.query.region) {
-            respond(response, 400, 'application/json', JSON.stringify({ error: 'Need region parameter set if meeting has not yet been created' }));
-          }
+          // if (!requestUrl.query.region) {
+          //   respond(response, 400, 'application/json', JSON.stringify({ error: 'Need region parameter set if meeting has not yet been created' }));
+          // }
           // If the meeting does not exist, check if we were passed in a meeting ID instead of an external meeting ID.  If so, use that one
+          console.log('TITLE ', requestUrl.query.title);
           try {
-            if (meetingIdFormat.test(requestUrl.query.title)) {
-              meeting = await chimeSDKMeetings.getMeeting({
-                MeetingId: requestUrl.query.title
-              });
-            }
+            meeting = await chimeSDKMeetings.getMeeting({
+              MeetingId: requestUrl.query.title
+            });
+            // if (meetingIdFormat.test(requestUrl.query.title)) {
+            //   meeting = await chimeSDKMeetings.getMeeting({
+            //     MeetingId: requestUrl.query.title
+            //   });
+            // }
           } catch (error) {
             console.info("Meeting ID doesn't exist as a conference ID: " + error);
+            // respond(response, 400, 'application/json', JSON.stringify({ error: 'Meeting not found' }));
           }
 
           // If still no meeting, create one
@@ -399,9 +400,9 @@ function serve(host = '127.0.0.1:8080') {
             if (primaryMeeting !== undefined) {
               request.PrimaryMeetingId = primaryMeeting.Meeting.MeetingId;
             }
-            if (requestUrl.query.ns_es === 'true' || 
-                  requestUrl.query.v_rs === 'FHD' || 
-                  requestUrl.query.v_rs === 'None' || 
+            if (requestUrl.query.ns_es === 'true' ||
+                  requestUrl.query.v_rs === 'FHD' ||
+                  requestUrl.query.v_rs === 'None' ||
                   requestUrl.query.c_rs === 'UHD' ||
                   requestUrl.query.c_rs === 'None' ||
                   requestUrl.query.a_cnt > 1 && requestUrl.query.a_cnt <= 250) {
