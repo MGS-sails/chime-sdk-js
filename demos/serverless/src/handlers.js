@@ -162,6 +162,8 @@ exports.join = async (event, context) => {
     return response(400, 'application/json', JSON.stringify({ error: 'Need parameters: title' }));
   }
 
+  let attendeesStore = [];
+
   try {
     const result = await ddb.getItem({
       TableName: MEETINGS_TABLE_NAME,
@@ -181,6 +183,8 @@ exports.join = async (event, context) => {
       meetingPasscode: attendee.M.MeetingPasscode.S,
       name: attendee.M.Name.S
     }));
+
+    attendeesStore = cleanedAttendees;
 
     const participant = cleanedAttendees.find(attendee =>
       attendee.externalUserId === query.name &&
@@ -313,7 +317,12 @@ exports.join = async (event, context) => {
   // Create new attendee for the meeting
   console.info('Adding new attendee');
   // Get attendee name from data gotten from the attendees array
-  const attendeeName = cleanedAttendees.find(attendee => attendee.externalUserId === query.name).name;
+  let attendeeName = query.name;
+  if (attendeesStore.length > 0) {
+     attendeeName = attendeesStore.find(attendee => attendee.externalUserId === query.name).name;
+  } else {
+     attendeeName = query.name;
+  }
 
   const createAttendeeRequest = {
     // The meeting ID of the created meeting to add the attendee to
