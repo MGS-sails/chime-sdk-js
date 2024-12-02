@@ -106,7 +106,8 @@ Resources:
         - Ref: ChimeSdkEndLiveConnectorLambdaRole
         - Ref: ChimeSdkUpdateAttendeeCapabilitiesLambdaRole
         - Ref: ChimeSdkBatchUpdateAttendeeCapabilitiesExceptLambdaRole
-        - Ref: ChimeSdkGetAttendeeLambdaRole        
+        - Ref: ChimeSdkGetAttendeeLambdaRole
+        - Ref: ChimeSdkCreateMeetingLambdaRole
   ChimeMessagingAccessPolicy:
     Type: AWS::IAM::Policy
     Condition: ShouldDeployFetchCredentialLambda
