@@ -56,7 +56,8 @@ exports.index = async (event, context, callback) => {
 exports.join = async (event, context) => {
   const meetingIdFormat = /^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/
   const query = event.queryStringParameters;
-  if (!query.title || !query.name) {
+  // if (!query.title || !query.name) {
+  if (!query.title) {
     return response(400, 'application/json', JSON.stringify({ error: 'Need parameters: title, name' }));
   }
 
