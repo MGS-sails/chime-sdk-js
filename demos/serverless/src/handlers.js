@@ -58,7 +58,7 @@ exports.join = async (event, context) => {
   const query = event.queryStringParameters;
   // if (!query.title || !query.name) {
   if (!query.title) {
-    return response(400, 'application/json', JSON.stringify({ error: 'Need parameters: title, name' }));
+    return response(400, 'application/json', JSON.stringify({ error: 'Need parameters: title' }));
   }
 
   // Look up the meeting by its title
