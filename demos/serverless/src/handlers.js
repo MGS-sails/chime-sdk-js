@@ -53,6 +53,107 @@ exports.index = async (event, context, callback) => {
   return response(200, 'text/html', fs.readFileSync('./index.html', { encoding: 'utf8' }));
 };
 
+
+exports.createMeeting = async (event, context) => {
+  try {
+    // Parse body from event
+    const body = JSON.parse(event.body);
+    const meetingTitle = body.title;
+
+    // Try to get existing meeting
+    let meeting = null;
+    try {
+      meeting = await chimeSDKMeetings.getMeeting({
+        MeetingId: meetingTitle
+      });
+    } catch (error) {
+      console.info("Meeting ID doesn't exist as a conference ID: " + error);
+    }
+
+    // Create new meeting if one doesn't exist
+    if (!meeting) {
+      const meetingRequest = {
+        ClientRequestToken: uuidv4(),
+        MediaRegion: 'us-east-1',
+        ExternalMeetingId: meetingTitle.substring(0, 64),
+        MeetingFeatures: {
+          Audio: {
+            EchoReduction: 'AVAILABLE',
+          },
+          Video: {
+            MaxResolution: body.videoResolution || 'HD',
+          },
+          Content: {
+            MaxResolution: body.contentResolution || 'FHD',
+          },
+          Attendee: {
+            MaxCount: 250,
+          }
+        }
+      };
+
+      console.info('Creating new meeting: ' + JSON.stringify(meetingRequest));
+      meeting = await chimeSDKMeetings.createMeeting(meetingRequest);
+      console.info('Created new meeting: ' + JSON.stringify(meeting));
+    }
+
+    // Format attendees for DynamoDB
+    const attendeesForDDB = {
+      L: body.attendees.map(attendee => ({
+        M: {
+          'Name': { S: attendee.name || '' },
+          'Role': { S: attendee.role },
+          'ExternalUserId': { S: attendee.externalUserId },
+          'MeetingPasscode': { S: attendee.meetingPasscode }
+        }
+      }))
+    };
+
+    // Store in DynamoDB
+    const putItemParams = {
+      TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
+      Item: {
+        'Title': { S: meetingTitle },
+        'Data': { S: JSON.stringify(meeting) },
+        'Attendees': attendeesForDDB,
+        'TTL': {
+          N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
+        }
+      }
+    };
+
+    console.log('Complete putItem params:', JSON.stringify(putItemParams, null, 2));
+    await ddb.putItem(putItemParams);
+
+    // Return success response
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*' // Enable CORS
+      },
+      body: JSON.stringify({
+        message: 'Meeting created successfully',
+        meeting: meeting.Meeting
+      })
+    };
+
+  } catch (error) {
+    console.error('Error processing request:', error);
+    return {
+      statusCode: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*' // Enable CORS
+      },
+      body: JSON.stringify({
+        error: 'Failed to create meeting',
+        message: error.message
+      })
+    };
+  }
+};
+
 exports.join = async (event, context) => {
   const meetingIdFormat = /^[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/
   const query = event.queryStringParameters;

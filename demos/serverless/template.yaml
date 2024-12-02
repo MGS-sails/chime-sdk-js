@@ -249,6 +249,25 @@ Resources:
           Properties:
             Path: /join
             Method: POST
+
+  ChimeSdkCreateMeetingLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers.createMeeting
+      CodeUri: src/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref Meetings
+      Environment:
+        Variables:
+          USE_EVENT_BRIDGE: !Ref UseEventBridge
+      Events:
+        Api1:
+          Type: Api
+          Properties:
+            Path: /meetings
+            Method: POST
+
   ChimeSdkDeleteAttendeeLambda:
     Type: AWS::Serverless::Function
     Properties:
