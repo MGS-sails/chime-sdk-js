@@ -150,8 +150,6 @@ function serve(host = '127.0.0.1:8080') {
               }
             };
 
-            console.log('Complete putItem params:', JSON.stringify(putItemParams, null, 2));
-
             await ddb.putItem(putItemParams);
 
             const meetings = Object.keys(meetingTable).map((title) => {
@@ -240,7 +238,6 @@ function serve(host = '127.0.0.1:8080') {
           //   respond(response, 400, 'application/json', JSON.stringify({ error: 'Need region parameter set if meeting has not yet been created' }));
           // }
           // If the meeting does not exist, check if we were passed in a meeting ID instead of an external meeting ID.  If so, use that one
-          console.log('TITLE ', requestUrl.query.title);
           try {
             meeting = await chimeSDKMeetings.getMeeting({
               MeetingId: requestUrl.query.title

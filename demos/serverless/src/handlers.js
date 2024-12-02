@@ -162,6 +162,37 @@ exports.join = async (event, context) => {
     return response(400, 'application/json', JSON.stringify({ error: 'Need parameters: title' }));
   }
 
+  try {
+    const result = await ddb.getItem({
+      TableName: MEETINGS_TABLE_NAME,
+      Key: {
+        'Title': {
+          S: query.title
+        },
+      },
+    });
+    // Get the attendees array
+    const attendees = result.Item.Attendees.L;
+
+// To get a more usable format, you can map through and clean up the data:
+    const cleanedAttendees = attendees.map(attendee => ({
+      role: attendee.M.Role.S,
+      externalUserId: attendee.M.ExternalUserId.S,
+      meetingPasscode: attendee.M.MeetingPasscode.S,
+      name: attendee.M.Name.S
+    }));
+
+    const participant = cleanedAttendees.find(attendee =>
+      attendee.externalUserId === query.name &&
+      attendee.meetingPasscode === query.passcode
+    );
+    if (!participant) {
+      return response(400, 'application/json', JSON.stringify({ error: 'Attendee not found' }));
+    }
+  } catch (error) {
+    console.error("Unable to read item. Error JSON:", JSON.stringify(error, null, 2));
+  }
+
   // Look up the meeting by its title
   let meeting = await getMeeting(query.title);
 
@@ -195,11 +226,14 @@ exports.join = async (event, context) => {
     }
     // If the meeting does not exist, check if we were passed in a meeting ID instead of an external meeting ID.  If so, use that one
     try {
-      if (meetingIdFormat.test(query.title)) {
-        meeting = await chimeSDKMeetings.getMeeting({
-          MeetingId: query.title
-        });
-      }
+      meeting = await chimeSDKMeetings.getMeeting({
+        MeetingId: query.title
+      });
+      // if (meetingIdFormat.test(query.title)) {
+      //   meeting = await chimeSDKMeetings.getMeeting({
+      //     MeetingId: query.title
+      //   });
+      // }
     } catch (error) {
       console.info("Meeting ID doesn't exist as a conference ID: " + error);
     }
@@ -272,7 +306,8 @@ exports.join = async (event, context) => {
     }
 
     // Store the meeting in the table using the meeting title as the key.
-    await putMeeting(query.title, meeting);
+    // COMMENTED OUT TO PREVENT POTENTIAL OVERWRITING OF ATTENDEES LIST
+    // await putMeeting(query.title, meeting);
   }
 
   // Create new attendee for the meeting
