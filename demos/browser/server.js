@@ -49,10 +49,31 @@ if (ivsEndpoint) {
   console.info(`IVS destination for live connector not set. Live Connector will not be available.`)
 }
 
+// List of allowed origins
+const allowedOrigins = ['https://tertiary-lms.test'];
+
 function serve(host = '127.0.0.1:8080') {
   // Start an HTTP server to serve the index page and handle meeting actions
   http.createServer({}, async (request, response) => {
     // log(`${request.method} ${request.url} BEGIN`);
+
+    // Get the origin of the request
+    const origin = request.headers.origin;
+
+    // Check if the origin is in the allowed list
+    // if (allowedOrigins.includes(origin)) {
+        response.setHeader('Access-Control-Allow-Origin', '*'); // Allow the specific origin
+        response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    // }
+
+    // Handle preflight (OPTIONS) requests
+    if (request.method === 'OPTIONS') {
+        response.writeHead(204); // No Content
+        response.end();
+        return;
+    }
+
     try {
       // Initialise Dynamo DB:
       const { DynamoDB } = require('@aws-sdk/client-dynamodb');
@@ -601,9 +622,9 @@ function respond(response, statusCode, contentType, body, skipLogging = false) {
   response.setHeader('Content-Type', contentType);
   response.setHeader('Access-Control-Allow-Origin', '*');
   // enable shared array buffer for videoFxProcessor
-  response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  // response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   // enable shared array buffer for videoFxProcessor
-  response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  // response.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   response.end(body);
   if (contentType === 'application/json' && !skipLogging) {
     log(body);
