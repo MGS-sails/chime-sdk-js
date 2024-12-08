@@ -1379,21 +1379,21 @@ export class DemoMeetingApp
       }
     });
 
-    const buttonMeetingEnd = document.getElementById('button-meeting-end');
-    buttonMeetingEnd.addEventListener('click', _e => {
-      const confirmEnd = new URL(window.location.href).searchParams.get('confirm-end') === 'true';
-      const prompt =
-          'Are you sure you want to end the meeting for everyone? The meeting cannot be used after ending it.';
-      if (confirmEnd && !window.confirm(prompt)) {
-        return;
-      }
-      AsyncScheduler.nextTick(async () => {
-        (buttonMeetingEnd as HTMLButtonElement).disabled = true;
-        await this.endMeeting();
-        await this.leave();
-        (buttonMeetingEnd as HTMLButtonElement).disabled = false;
-      });
-    });
+    // const buttonMeetingEnd = document.getElementById('button-meeting-end');
+    // buttonMeetingEnd.addEventListener('click', _e => {
+    //   const confirmEnd = new URL(window.location.href).searchParams.get('confirm-end') === 'true';
+    //   const prompt =
+    //       'Are you sure you want to end the meeting for everyone? The meeting cannot be used after ending it.';
+    //   if (confirmEnd && !window.confirm(prompt)) {
+    //     return;
+    //   }
+    //   AsyncScheduler.nextTick(async () => {
+    //     (buttonMeetingEnd as HTMLButtonElement).disabled = true;
+    //     await this.endMeeting();
+    //     await this.leave();
+    //     (buttonMeetingEnd as HTMLButtonElement).disabled = false;
+    //   });
+    // });
 
     const buttonMeetingLeave = document.getElementById('button-meeting-leave');
     buttonMeetingLeave.addEventListener('click', e => {
