@@ -116,9 +116,9 @@ exports.createMeeting = async (event, context) => {
         'Title': { S: meetingTitle },
         'Data': { S: JSON.stringify(meeting) },
         'Attendees': attendeesForDDB,
-        'TTL': {
-          N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
-        }
+        // 'TTL': {
+        //   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
+        // }
       }
     };
 
@@ -794,9 +794,9 @@ async function putMeeting(title, meeting) {
     Item: {
       'Title': { S: title },
       'Data': { S: JSON.stringify(meeting) },
-      'TTL': {
-        N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}` // clean up meeting record one day from now
-      }
+      // 'TTL': {
+      //   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}` // clean up meeting record one day from now
+      // }
     }
   });
 }
