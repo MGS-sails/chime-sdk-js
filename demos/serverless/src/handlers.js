@@ -10,6 +10,7 @@ const { Ivs } = require('@aws-sdk/client-ivs');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { metricScope } = require('aws-embedded-metrics');
+const zlib = require('zlib');
 
 // Store meetings in a DynamoDB table so attendees can join by meeting title
 const ddb = new DynamoDB();
@@ -98,16 +99,18 @@ exports.createMeeting = async (event, context) => {
     }
 
     // Format attendees for DynamoDB
-    const attendeesForDDB = {
-      L: body.attendees.map(attendee => ({
-        M: {
-          'Name': { S: attendee.name || '' },
-          'Role': { S: attendee.role },
-          'ExternalUserId': { S: attendee.externalUserId },
-          'MeetingPasscode': { S: attendee.meetingPasscode }
-        }
-      }))
-    };
+    // const attendeesForDDB = {
+    //   L: body.attendees.map(attendee => ({
+    //     M: {
+    //       'Name': { S: attendee.name || '' },
+    //       'Role': { S: attendee.role },
+    //       'ExternalUserId': { S: attendee.externalUserId },
+    //       'MeetingPasscode': { S: attendee.meetingPasscode }
+    //     }
+    //   }))
+    // };
+
+    const compressedAttendees = zlib.gzipSync(JSON.stringify(body.attendees)).toString('base64');
 
     // Store in DynamoDB
     const putItemParams = {
@@ -115,7 +118,7 @@ exports.createMeeting = async (event, context) => {
       Item: {
         'Title': { S: meetingTitle },
         'Data': { S: JSON.stringify(meeting) },
-        'Attendees': attendeesForDDB,
+        'Attendees': { S: compressedAttendees },
         // 'TTL': {
         //   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
         // }
@@ -176,19 +179,24 @@ exports.join = async (event, context) => {
       },
     });
     // Get the attendees array
-    const attendees = result.Item.Attendees.L;
+    // const attendees = result.Item.Attendees.L;
+    const compressedAttendees = result.Item.Attendees.S;
 
 // To get a more usable format, you can map through and clean up the data:
-    const cleanedAttendees = attendees.map(attendee => ({
-      role: attendee.M.Role.S,
-      externalUserId: attendee.M.ExternalUserId.S,
-      meetingPasscode: attendee.M.MeetingPasscode.S,
-      name: attendee.M.Name.S
-    }));
+    // const cleanedAttendees = attendees.map(attendee => ({
+    //   role: attendee.M.Role.S,
+    //   externalUserId: attendee.M.ExternalUserId.S,
+    //   meetingPasscode: attendee.M.MeetingPasscode.S,
+    //   name: attendee.M.Name.S
+    // }));
 
-    attendeesStore = cleanedAttendees;
+    // attendeesStore = cleanedAttendees;
 
-    const participant = cleanedAttendees.find(attendee =>
+    const decompressedAttendees = JSON.parse(
+      zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
+    );
+
+    const participant = decompressedAttendees.find(attendee =>
       attendee.externalUserId === query.name &&
       attendee.meetingPasscode === query.passcode
     );

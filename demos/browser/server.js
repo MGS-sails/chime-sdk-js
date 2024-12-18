@@ -12,6 +12,8 @@ const url = require('url');
 const { v4: uuidv4 } = require('uuid');
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 
+const zlib = require('zlib');
+
 // Store created meetings in a map so attendees can join by meeting title.
 const meetingTable = {};
 
@@ -147,24 +149,39 @@ function serve(host = '127.0.0.1:8080') {
 
             meetingTable[meetingTitle] = meeting;
 
-            const attendeesForDDB = {
-              L: postData.attendees.map(attendee => ({
-                M: {
-                  'Name': { S: attendee.name || '' },
-                  'Role': { S: attendee.role },
-                  'ExternalUserId': { S: attendee.externalUserId },
-                  'MeetingPasscode': { S: attendee.meetingPasscode }
-                }
-              }))
-            };
+            // ** !! testing purpose !! *******************************
+            // Function to generate random string
+            // const getRandomString = (length) => {
+            //   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            //   return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+            // };
 
+            // // Function to generate a random attendee
+            // const generateRandomAttendee = () => ({
+            //   name: getRandomString(10), // Random name of 10 characters
+            //   role: 'attendee',
+            //   externalUserId: getRandomString(8), // Random external ID
+            //   meetingPasscode: getRandomString(6) // Random code of 6 characters
+            // });
 
+            // Generate 11,000 attendees
+            // const attendees = [];
+            // for (let i = 0; i < 11000; i++) {
+            //   attendees.push(generateRandomAttendee());
+            // }
+
+            // const attendees_list = postData.attendees.concat(attendees)
+            // ** !!  end testing purpose line !! *************************
+
+            
+            const compressedAttendees = zlib.gzipSync(JSON.stringify(postData.attendees)).toString('base64');
+  
             const putItemParams = {
               TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
               Item: {
                 'Title': { S: meetingTitle },
                 'Data': { S: JSON.stringify(meeting) },
-                'Attendees': attendeesForDDB,
+                'Attendees': { S: compressedAttendees },
                 'TTL': {
                   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
                 }
@@ -199,17 +216,24 @@ function serve(host = '127.0.0.1:8080') {
             },
           });
           // Get the attendees array
-          const attendees = result.Item.Attendees.L;
+          // const attendees = result.Item.Attendees.L;
+          const compressedAttendees = result.Item.Attendees.S;
+
+          
 
 // To get a more usable format, you can map through and clean up the data:
-          const cleanedAttendees = attendees.map(attendee => ({
-            role: attendee.M.Role.S,
-            externalUserId: attendee.M.ExternalUserId.S,
-            meetingPasscode: attendee.M.MeetingPasscode.S,
-            name: attendee.M.Name.S
-          }));
+          // const cleanedAttendees = attendees.map(attendee => ({
+          //   role: attendee.M.Role.S,
+          //   externalUserId: attendee.M.ExternalUserId.S,
+          //   meetingPasscode: attendee.M.MeetingPasscode.S,
+          //   name: attendee.M.Name.S
+          // }));
 
-          const participant = cleanedAttendees.find(attendee =>
+          const decompressedAttendees = JSON.parse(
+            zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
+          );
+
+          const participant = decompressedAttendees.find(attendee =>
             attendee.externalUserId === requestUrl.query.name &&
             attendee.meetingPasscode === requestUrl.query.passcode
           );
