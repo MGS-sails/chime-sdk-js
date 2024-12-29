@@ -5,6 +5,7 @@ const { ChimeSDKMediaPipelines } = require('@aws-sdk/client-chime-sdk-media-pipe
 const { ChimeSDKMeetings } = require('@aws-sdk/client-chime-sdk-meetings');
 const { CloudWatchLogs } = require('@aws-sdk/client-cloudwatch-logs');
 const { DynamoDB } = require('@aws-sdk/client-dynamodb');
+const { S3 } = require('@aws-sdk/client-s3');
 const { Ivs } = require('@aws-sdk/client-ivs');
 
 const fs = require('fs');
