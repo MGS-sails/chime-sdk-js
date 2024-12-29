@@ -1733,14 +1733,14 @@ export class DemoMeetingApp
 
   displayEstimatedUplinkBandwidth(bitrate: number) {
     const value = `Available Uplink Bandwidth: ${bitrate ? bitrate / 1000 : 'Unknown'} Kbps`;
-    (document.getElementById('video-uplink-bandwidth') as HTMLSpanElement).innerText = value;
-    (document.getElementById('mobile-video-uplink-bandwidth') as HTMLSpanElement).innerText = value;
+    // (document.getElementById('video-uplink-bandwidth') as HTMLSpanElement).innerText = value;
+    // (document.getElementById('mobile-video-uplink-bandwidth') as HTMLSpanElement).innerText = value;
   }
 
   displayEstimatedDownlinkBandwidth(bitrate: number) {
     const value = `Available Downlink Bandwidth: ${bitrate ? bitrate / 1000 : 'Unknown'} Kbps`;
-    (document.getElementById('video-downlink-bandwidth') as HTMLSpanElement).innerText = value;
-    (document.getElementById('mobile-video-downlink-bandwidth') as HTMLSpanElement).innerText = value;
+    // (document.getElementById('video-downlink-bandwidth') as HTMLSpanElement).innerText = value;
+    // (document.getElementById('mobile-video-downlink-bandwidth') as HTMLSpanElement).innerText = value;
   }
 
   resetStats = (): void => {
@@ -4013,21 +4013,29 @@ export class DemoMeetingApp
             this.switchToFlow('flow-failed-meeting');
             return;
           }
+
           (document.getElementById(
               'meeting-id'
-          ) as HTMLSpanElement).innerText = `${this.meeting} (${this.region})`;
-          (document.getElementById(
-              'chime-meeting-id'
-          ) as HTMLSpanElement).innerText = `Meeting ID: ${chimeMeetingId}`;
-          (document.getElementById(
-              'mobile-chime-meeting-id'
-          ) as HTMLSpanElement).innerText = `Meeting ID: ${chimeMeetingId}`;
-          (document.getElementById(
-              'mobile-attendee-id'
-          ) as HTMLSpanElement).innerText = `Attendee ID: ${this.meetingSession.configuration.credentials.attendeeId}`;
-          (document.getElementById(
-              'desktop-attendee-id'
-          ) as HTMLSpanElement).innerText = `Attendee ID: ${this.meetingSession.configuration.credentials.attendeeId}`;
+          ) as HTMLSpanElement).innerText = `${this.meeting}`;
+          (document.querySelector(
+              'title'
+          ) as HTMLSpanElement).innerHTML = `${this.meeting}`;
+
+          // (document.getElementById(
+          //     'meeting-id'
+          // ) as HTMLSpanElement).innerText = `${this.meeting} (${this.region})`;
+          // (document.getElementById(
+          //     'chime-meeting-id'
+          // ) as HTMLSpanElement).innerText = `Meeting ID: ${chimeMeetingId}`;
+          // (document.getElementById(
+          //     'mobile-chime-meeting-id'
+          // ) as HTMLSpanElement).innerText = `Meeting ID: ${chimeMeetingId}`;
+          // (document.getElementById(
+          //     'mobile-attendee-id'
+          // ) as HTMLSpanElement).innerText = `Attendee ID: ${this.meetingSession.configuration.credentials.attendeeId}`;
+          // (document.getElementById(
+          //     'desktop-attendee-id'
+          // ) as HTMLSpanElement).innerText = `Attendee ID: ${this.meetingSession.configuration.credentials.attendeeId}`;
           (document.getElementById('info-meeting') as HTMLSpanElement).innerText = this.meeting;
           (document.getElementById('info-name') as HTMLSpanElement).innerText = this.name;
 

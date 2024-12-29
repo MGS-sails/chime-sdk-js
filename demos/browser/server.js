@@ -4,6 +4,7 @@
 const { ChimeSDKMediaPipelines } = require('@aws-sdk/client-chime-sdk-media-pipelines');
 const { ChimeSDKMeetings } = require('@aws-sdk/client-chime-sdk-meetings');
 const { STS } = require('@aws-sdk/client-sts');
+const { S3 } = require('@aws-sdk/client-s3');
 
 const compression = require('compression');
 const fs = require('fs');
@@ -83,6 +84,10 @@ function serve(host = '127.0.0.1:8080') {
         region: 'us-east-1',
       });
 
+      const s3 = new S3({
+        region: 'us-east-1'
+      });
+
 
       // Enable HTTP compression
       compression({})(request, response, () => {});
@@ -156,7 +161,7 @@ function serve(host = '127.0.0.1:8080') {
             //   return Array.from({ length }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
             // };
 
-            // // Function to generate a random attendee
+            // Function to generate a random attendee
             // const generateRandomAttendee = () => ({
             //   name: getRandomString(10), // Random name of 10 characters
             //   role: 'attendee',
@@ -175,13 +180,27 @@ function serve(host = '127.0.0.1:8080') {
 
             
             const compressedAttendees = zlib.gzipSync(JSON.stringify(postData.attendees)).toString('base64');
+
+            console.log(compressedAttendees)
+
+            // store attendees in s3
+            const s3Params = {
+              Bucket: 'chime-meeting-attendees',
+              Key: `${meetingTitle}.gz`,
+              Body: compressedAttendees,
+              ContentType: 'application/json',
+              ContentEncoding: 'gzip',
+            };
+
+            await s3.putObject(s3Params)
   
             const putItemParams = {
               TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
               Item: {
                 'Title': { S: meetingTitle },
                 'Data': { S: JSON.stringify(meeting) },
-                'Attendees': { S: compressedAttendees },
+                // 'Attendees': { S: compressedAttendees },
+                'AttendeesData': { S: `${meetingTitle}.gz` },
                 'TTL': {
                   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
                 }
@@ -217,7 +236,7 @@ function serve(host = '127.0.0.1:8080') {
           });
           // Get the attendees array
           // const attendees = result.Item.Attendees.L;
-          const compressedAttendees = result.Item.Attendees.S;
+          // const compressedAttendees = result.Item.Attendees.S;
 
           
 
@@ -229,9 +248,12 @@ function serve(host = '127.0.0.1:8080') {
           //   name: attendee.M.Name.S
           // }));
 
-          const decompressedAttendees = JSON.parse(
-            zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
-          );
+          const attendeesObject = await s3.getObject(s3Params);
+          const decompressedAttendees = JSON.parse(zlib.gunzipSync(attendeesObject.Body).toString());
+
+          // const decompressedAttendees = JSON.parse(
+          //   zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
+          // );
 
           const participant = decompressedAttendees.find(attendee =>
             attendee.externalUserId === requestUrl.query.name &&

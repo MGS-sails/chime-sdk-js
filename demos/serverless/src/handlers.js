@@ -15,6 +15,8 @@ const zlib = require('zlib');
 // Store meetings in a DynamoDB table so attendees can join by meeting title
 const ddb = new DynamoDB();
 
+const s3 = new S3();
+
 const currentRegion = process.env.REGION;
 const chimeSDKMeetingsEndpoint = process.env.CHIME_SDK_MEETINGS_ENDPOINT;
 const mediaPipelinesControlRegion = process.env.MEDIA_PIPELINES_CONTROL_REGION;
@@ -112,16 +114,28 @@ exports.createMeeting = async (event, context) => {
 
     const compressedAttendees = zlib.gzipSync(JSON.stringify(body.attendees)).toString('base64');
 
+    // store attendees in s3
+    const s3Params = {
+      Bucket: 'chime-meeting-attendees',
+      Key: `${meetingTitle}.gz`,
+      Body: compressedAttendees,
+      ContentType: 'application/json',
+      ContentEncoding: 'gzip',
+    };
+
+    await s3.putObject(s3Params)
+
     // Store in DynamoDB
     const putItemParams = {
       TableName: 'recorder-demo-stack-Meetings-E07BQC85E26Y',
       Item: {
         'Title': { S: meetingTitle },
         'Data': { S: JSON.stringify(meeting) },
-        'Attendees': { S: compressedAttendees },
-        // 'TTL': {
-        //   N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
-        // }
+        'AttendeesData': { S: `${meetingTitle}.gz` },
+        // 'Attendees': { S: compressedAttendees },
+        'TTL': {
+          N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`
+        }
       }
     };
 
@@ -180,7 +194,7 @@ exports.join = async (event, context) => {
     });
     // Get the attendees array
     // const attendees = result.Item.Attendees.L;
-    const compressedAttendees = result.Item.Attendees.S;
+    // const compressedAttendees = result.Item.Attendees.S;
 
 // To get a more usable format, you can map through and clean up the data:
     // const cleanedAttendees = attendees.map(attendee => ({
@@ -192,9 +206,12 @@ exports.join = async (event, context) => {
 
     // attendeesStore = cleanedAttendees;
 
-    const decompressedAttendees = JSON.parse(
-      zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
-    );
+    // const decompressedAttendees = JSON.parse(
+    //   zlib.gunzipSync(Buffer.from(compressedAttendees, 'base64')).toString()
+    // );
+
+    const attendeesObject = await s3.getObject(s3Params);
+    const decompressedAttendees = JSON.parse(zlib.gunzipSync(attendeesObject.Body).toString());
 
     const participant = decompressedAttendees.find(attendee =>
       attendee.externalUserId === query.name &&
