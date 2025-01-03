@@ -16,7 +16,7 @@ const { DynamoDB } = require('@aws-sdk/client-dynamodb');
 const zlib = require('zlib');
 
 // Store created meetings in a map so attendees can join by meeting title.
-const meetingTable = {};
+const meetingTable = {}; 
 
 // Load the contents of the web application to be used as the index page.
 const app = process.env.npm_config_app || 'meetingV2';
