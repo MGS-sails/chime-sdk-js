@@ -3997,10 +3997,11 @@ export class DemoMeetingApp
 
     AsyncScheduler.nextTick(
         async (): Promise<void> => {
-          let chimeMeetingId: string = '';
+          // let chimeMeetingId: string = '';
           this.showProgress('progress-authenticate');
           try {
-            chimeMeetingId = await this.authenticate();
+            // chimeMeetingId = await this.authenticate();
+            await this.authenticate();
           } catch (error) {
             console.error(error);
             const httpErrorMessage =
