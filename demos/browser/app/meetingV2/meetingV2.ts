@@ -3997,22 +3997,22 @@ export class DemoMeetingApp
 
     AsyncScheduler.nextTick(
         async (): Promise<void> => {
-          // let chimeMeetingId: string = '';
+          let chimeMeetingId: string = '';
           this.showProgress('progress-authenticate');
-          // try {
-          //   chimeMeetingId = await this.authenticate();
-          // } catch (error) {
-          //   console.error(error);
-          //   const httpErrorMessage =
-          //       'UserMedia is not allowed in HTTP sites. Either use HTTPS or enable media capture on insecure sites.';
-          //   (document.getElementById(
-          //       'failed-meeting'
-          //   ) as HTMLDivElement).innerText = `Meeting ID: ${this.meeting}`;
-          //   (document.getElementById('failed-meeting-error') as HTMLDivElement).innerText =
-          //       window.location.protocol === 'http:' ? httpErrorMessage : error.message;
-          //   this.switchToFlow('flow-failed-meeting');
-          //   return;
-          // }
+          try {
+            chimeMeetingId = await this.authenticate();
+          } catch (error) {
+            console.error(error);
+            const httpErrorMessage =
+                'UserMedia is not allowed in HTTP sites. Either use HTTPS or enable media capture on insecure sites.';
+            (document.getElementById(
+                'failed-meeting'
+            ) as HTMLDivElement).innerText = `Meeting ID: ${this.meeting}`;
+            (document.getElementById('failed-meeting-error') as HTMLDivElement).innerText =
+                window.location.protocol === 'http:' ? httpErrorMessage : error.message;
+            this.switchToFlow('flow-failed-meeting');
+            return;
+          }
 
           (document.getElementById(
               'meeting-id'
